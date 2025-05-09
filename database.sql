@@ -74,3 +74,5 @@ CREATE TABLE HistorialCategoria (
     FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat)
 );
 
+
+-- ayuda
