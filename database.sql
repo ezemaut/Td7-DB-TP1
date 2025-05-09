@@ -13,7 +13,8 @@ DROP TABLE IF EXISTS HistorialCategoria CASCADE;
 /*
 git add .                           
 git commit -m "factura"
-git push -u origin master           
+git branch -M main            # Rename current branch to 'main'
+git push -u origin main       # Push it to GitHub and set it as upstream       
 */
 
 -- Table: Titular
