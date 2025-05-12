@@ -45,32 +45,22 @@ git push -u origin main
 CREATE TABLE Tarjeta (
     ID_tarjeta INT PRIMARY KEY,
     foto VARCHAR(255),
-    estado VARCHAR(50),
-    Total_gastado DECIMAL(10,2),
+    estado BOOLEAN,
+    Total_gastado DECIMAL(10,2), -- Puede que este de mas
     DNI VARCHAR(20),
     FOREIGN KEY (DNI) REFERENCES Titular(DNI)
 );
 
 -- Table: Titular
 CREATE TABLE Titular (
-    DNI VARCHAR(20) PRIMARY KEY,
-    Nombre VARCHAR(100),
-    Apellido VARCHAR(100),
-    Celular VARCHAR(20),
+    DNI INT PRIMARY KEY,
+    Nombre VARCHAR(30),
+    Apellido VARCHAR(30),
+    Celular VARCHAR(20), -- no int para que tenga +
     id_dom INT,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
 );
 
-
--- Table: HistorialCategoria
-CREATE TABLE HistorialCategoria (
-    id_historial INT PRIMARY KEY,
-    fecha_de_inicio DATE,
-    ID_tarjeta INT,
-    nombre_cat VARCHAR(100),
-    FOREIGN KEY (ID_tarjeta) REFERENCES Tarjeta(ID_tarjeta),
-    FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat)
-);
 
 -- Table: Factura
 CREATE TABLE Factura (
@@ -79,7 +69,7 @@ CREATE TABLE Factura (
     fecha_vencimiento DATE,
     importe_total DECIMAL(10,2),
     pagado BOOLEAN,
-    DNI VARCHAR(20),
+    DNI INT,
     FOREIGN KEY (DNI) REFERENCES Titular(DNI)
 );
 
@@ -106,52 +96,67 @@ CREATE TABLE Medio_de_Pago (
     FOREIGN KEY (Nro_factura) REFERENCES Factura(Nro_factura)
 );
 
--- Table: Ranking
-CREATE TABLE Ranking (
-    id_ranking INT PRIMARY KEY,
-    peso_imp DECIMAL(5,2)
+-- Table: HistorialCategoria
+CREATE TABLE HistorialCategoria (
+    id_historial INT PRIMARY KEY,
+    fecha_de_inicio DATE,
+    ID_tarjeta INT,
+    nombre_cat VARCHAR(30),
+    FOREIGN KEY (ID_tarjeta) REFERENCES Tarjeta(ID_tarjeta),
+    FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat)
 );
 
--- Updated Table: Categoria (add FK to Ranking)
+-- Table: Categoria 
 CREATE TABLE Categoria (
-    nombre_cat VARCHAR(100) PRIMARY KEY,
+    nombre_cat VARCHAR(30) PRIMARY KEY,
     min_total_anual DECIMAL(10,2),
     promedio_mensual DECIMAL(10,2),
     id_ranking INT UNIQUE,
     FOREIGN KEY (id_ranking) REFERENCES Ranking(id_ranking)
 );
 
+-- Table: Ranking
+CREATE TABLE Ranking (
+    id_ranking INT PRIMARY KEY,
+    peso_imp INT
+);
+
 -- Table: Entretenimiento (base table)
 CREATE TABLE Entretenimiento (
     id_entretenimiento INT,
-    nombre VARCHAR(100),
+    fecha DATE,
+    nombre VARCHAR(50),
     precio DECIMAL(10,2),
     tipo VARCHAR(20), -- 'Evento' o 'Parque'
-    min_categoria VARCHAR(100),
-    fecha DATE,
+    min_categoria VARCHAR(30),
     PRIMARY KEY (id_entretenimiento, fecha),
     FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)
 );
-
-
+sql
 -- Table: Parque_de_Diversiones (inherits from Entretenimiento)
 CREATE TABLE Parque_de_Diversiones (
-    id_entretenimiento INT PRIMARY KEY,
-    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento)
+    id_entretenimiento INT,
+    fecha DATE,
+    PRIMARY KEY (id_entretenimiento, fecha),
+    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha)
 );
 
 -- Table: Evento (inherits from Entretenimiento)
 CREATE TABLE Evento (
-    id_entretenimiento INT PRIMARY KEY,
+    id_entretenimiento INT,
+    fecha DATE,
     fecha_inicio DATE,
     fecha_fin DATE,
-    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento)
+    cuit VARCHAR(20),
+    PRIMARY KEY (id_entretenimiento, fecha),
+    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha),
+    FOREIGN KEY (cuit) REFERENCES Empresa(cuit)
 );
 
 -- Table: Empresa
 CREATE TABLE Empresa (
     cuit VARCHAR(20) PRIMARY KEY,
-    razon_social VARCHAR(100),
+    razon_social VARCHAR(50),
     id_dom INT UNIQUE,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
 );
@@ -162,36 +167,38 @@ CREATE TABLE Atraccion (
     fecha DATE,
     precio DECIMAL(10,2),
     id_caracteristica INT,
+    id_parque INT,
+    fecha_parque DATE,
     PRIMARY KEY (id_atraccion, fecha),
-    FOREIGN KEY (id_caracteristica) REFERENCES Caracteristica(id_caracteristica)
+    FOREIGN KEY (id_caracteristica) REFERENCES Caracteristica(id_caracteristica),
+    FOREIGN KEY (id_parque, fecha_parque) REFERENCES Parque_de_Diversiones(id_entretenimiento, fecha)
 );
 
 
 -- Table: Caracteristica
 CREATE TABLE Caracteristica (
     id_caracteristica INT PRIMARY KEY,
-    nombre_atraccion VARCHAR(100),
+    nombre_atraccion VARCHAR(30),
     altura_min INT,
     edad_min INT
 );
-
 
 -- Table: Promocion
 CREATE TABLE Promocion (
     ID_promocion INT PRIMARY KEY,
     fecha_inicio DATE,
     fecha_fin DATE,
-    categoria VARCHAR(50),
-    descuento DECIMAL(5,2)
+    descuento INT
 );
 
 -- NN Table: Promocion_Atraccion
 CREATE TABLE Promocion_Atraccion (
     ID_promocion INT,
     id_atraccion INT,
-    PRIMARY KEY (ID_promocion, id_atraccion),
+    fecha DATE,
+    PRIMARY KEY (ID_promocion, id_atraccion, fecha),
     FOREIGN KEY (ID_promocion) REFERENCES Promocion(ID_promocion),
-    FOREIGN KEY (id_atraccion) REFERENCES Atraccion(id_atraccion)
+    FOREIGN KEY (id_atraccion, fecha) REFERENCES Atraccion(id_atraccion, fecha)
 );
 
 -- NN Table: Promocion_Entretenimiento
@@ -200,12 +207,12 @@ CREATE TABLE Promo_Entret (
     id_entretenimiento INT,
     PRIMARY KEY (ID_promocion, id_entretenimiento),
     FOREIGN KEY (ID_promocion) REFERENCES Promocion(ID_promocion),
-    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento)
+    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha)
 );
 
 -- NN Table: cat_promo
 CREATE TABLE cat_promo (
-    nombre_cat VARCHAR(100),
+    nombre_cat VARCHAR(30),
     ID_promocion INT,
     PRIMARY KEY (nombre_cat, ID_promocion),
     FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat),
@@ -215,13 +222,13 @@ CREATE TABLE cat_promo (
 -- Table: Pais
 CREATE TABLE Pais (
     ID_pais INT PRIMARY KEY,
-    Nombre VARCHAR(100)
+    Nombre VARCHAR(30)
 );
 
 -- Table: Provincia
 CREATE TABLE Provincia (
     ID_provincia INT PRIMARY KEY,
-    Nombre VARCHAR(100),
+    Nombre VARCHAR(30),
     ID_pais INT,
     FOREIGN KEY (ID_pais) REFERENCES Pais(ID_pais)
 );
@@ -229,7 +236,7 @@ CREATE TABLE Provincia (
 -- Table: Localidad
 CREATE TABLE Localidad (
     ID_ciudad INT PRIMARY KEY,
-    Nombre VARCHAR(100),
+    Nombre VARCHAR(30),
     ID_provincia INT,
     FOREIGN KEY (ID_provincia) REFERENCES Provincia(ID_provincia)
 );
@@ -237,7 +244,8 @@ CREATE TABLE Localidad (
 -- Table: Calle
 CREATE TABLE Calle (
     ID_calle INT PRIMARY KEY,
-    Nombre VARCHAR(100)
+    Nombre VARCHAR(30),
+    CP INT,
     ID_ciudad INT,
     FOREIGN KEY (ID_ciudad) REFERENCES Localidad(ID_ciudad)
 );
@@ -246,8 +254,7 @@ CREATE TABLE Calle (
 CREATE TABLE Domicilio (
     id_dom INT PRIMARY KEY,
     numero VARCHAR(10),
-    piso VARCHAR(10),
-    CP VARCHAR(10),
+    piso INT,
     ID_calle INT,
     FOREIGN KEY (ID_calle) REFERENCES Calle(ID_calle), 
 );
