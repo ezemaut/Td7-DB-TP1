@@ -30,26 +30,26 @@ DROP TABLE IF EXISTS Pais CASCADE;
 -- ==============================================
 CREATE TABLE Pais (
     ID_pais INT PRIMARY KEY,
-    Nombre VARCHAR(30)
+    Nombre VARCHAR(100)
 );
 
 CREATE TABLE Provincia (
     ID_provincia INT PRIMARY KEY,
-    Nombre VARCHAR(30),
+    Nombre VARCHAR(100),
     ID_pais INT,
     FOREIGN KEY (ID_pais) REFERENCES Pais(ID_pais)
 );
 
 CREATE TABLE Localidad (
     ID_ciudad INT PRIMARY KEY,
-    Nombre VARCHAR(30),
+    Nombre VARCHAR(100),
     ID_provincia INT,
     FOREIGN KEY (ID_provincia) REFERENCES Provincia(ID_provincia)
 );
 
 CREATE TABLE Calle (
     ID_calle INT PRIMARY KEY,
-    Nombre VARCHAR(30),
+    Nombre VARCHAR(100),
     CP INT,
     ID_ciudad INT,
     FOREIGN KEY (ID_ciudad) REFERENCES Localidad(ID_ciudad)
@@ -79,7 +79,7 @@ CREATE TABLE Ranking (
 );
 
 CREATE TABLE Categoria (
-    nombre_cat VARCHAR(30) PRIMARY KEY,
+    nombre_cat VARCHAR(100) PRIMARY KEY,
     min_total_anual DECIMAL(10,2),
     promedio_mensual DECIMAL(10,2),
     id_ranking INT UNIQUE,
@@ -95,15 +95,15 @@ CREATE TABLE Promocion (
 
 CREATE TABLE Caracteristica (
     id_caracteristica INT PRIMARY KEY,
-    nombre_atraccion VARCHAR(30),
+    nombre_atraccion VARCHAR(100),
     altura_min INT,
     edad_min INT
 );
 
 CREATE TABLE Titular (
     DNI INT PRIMARY KEY,
-    Nombre VARCHAR(30),
-    Apellido VARCHAR(30),
+    Nombre VARCHAR(100),
+    Apellido VARCHAR(100),
     Celular VARCHAR(20),
     id_dom INT,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
@@ -145,7 +145,7 @@ CREATE TABLE Entretenimiento (
     nombre VARCHAR(50),
     precio DECIMAL(10,2),
     tipo VARCHAR(20),
-    min_categoria VARCHAR(30),
+    min_categoria VARCHAR(100),
     PRIMARY KEY (id_entretenimiento, fecha),
     FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)
 );
@@ -203,7 +203,7 @@ CREATE TABLE HistorialCategoria (
     id_historial INT PRIMARY KEY,
     fecha_de_inicio DATE,
     ID_tarjeta INT,
-    nombre_cat VARCHAR(30),
+    nombre_cat VARCHAR(100),
     FOREIGN KEY (ID_tarjeta) REFERENCES Tarjeta(ID_tarjeta),
     FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat)
 );
@@ -230,7 +230,7 @@ CREATE TABLE Promo_Entret (
 );
 
 CREATE TABLE cat_promo (
-    nombre_cat VARCHAR(30),
+    nombre_cat VARCHAR(100),
     ID_promocion INT,
     PRIMARY KEY (nombre_cat, ID_promocion),
     FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat),
