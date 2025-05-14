@@ -67,7 +67,7 @@ CREATE TABLE Domicilio (
 -- CREATE CORE ENTITIES
 -- ==============================================
 CREATE TABLE Empresa (
-    cuit VARCHAR(20) PRIMARY KEY,
+    cuit VARCHAR(50) PRIMARY KEY,
     razon_social VARCHAR(50),
     id_dom INT UNIQUE,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
@@ -104,7 +104,7 @@ CREATE TABLE Titular (
     DNI INT PRIMARY KEY,
     Nombre VARCHAR(100),
     Apellido VARCHAR(100),
-    Celular VARCHAR(20),
+    Celular VARCHAR(50),
     id_dom INT,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
 );
@@ -144,11 +144,14 @@ CREATE TABLE Entretenimiento (
     fecha DATE,
     nombre VARCHAR(50),
     precio DECIMAL(10,2),
-    tipo VARCHAR(20),
+    tipo VARCHAR(50),
     min_categoria VARCHAR(100),
+    id_domicilio INT,  -- Foreign key to Domicilio
     PRIMARY KEY (id_entretenimiento, fecha),
-    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)
+    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat),
+    FOREIGN KEY (id_domicilio) REFERENCES Domicilio(id_dom)  -- Adding the foreign key reference to Domicilio
 );
+
 
 CREATE TABLE Parque_de_Diversiones (
     id_entretenimiento INT,
@@ -158,12 +161,11 @@ CREATE TABLE Parque_de_Diversiones (
 );
 
 CREATE TABLE Evento (
-    id_entretenimiento INT,
+    id_entretenimiento INT PRIMARY KEY,
     fecha DATE,
     fecha_inicio DATE,
     fecha_fin DATE,
-    cuit VARCHAR(20),
-    PRIMARY KEY (id_entretenimiento, fecha),
+    cuit VARCHAR(50),
     FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha),
     FOREIGN KEY (cuit) REFERENCES Empresa(cuit)
 );

@@ -67,7 +67,7 @@ CREATE TABLE Domicilio (
 -- CREATE CORE ENTITIES
 -- ==============================================
 CREATE TABLE Empresa (
-    cuit VARCHAR(20) PRIMARY KEY,
+    cuit VARCHAR(50) PRIMARY KEY,
     razon_social VARCHAR(50),
     id_dom INT UNIQUE,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
@@ -104,7 +104,7 @@ CREATE TABLE Titular (
     DNI INT PRIMARY KEY,
     Nombre VARCHAR(100),
     Apellido VARCHAR(100),
-    Celular VARCHAR(20),
+    Celular VARCHAR(50),
     id_dom INT,
     FOREIGN KEY (id_dom) REFERENCES Domicilio(id_dom)
 );
@@ -144,11 +144,14 @@ CREATE TABLE Entretenimiento (
     fecha DATE,
     nombre VARCHAR(50),
     precio DECIMAL(10,2),
-    tipo VARCHAR(20),
+    tipo VARCHAR(50),
     min_categoria VARCHAR(100),
+    id_domicilio INT,  -- Foreign key to Domicilio
     PRIMARY KEY (id_entretenimiento, fecha),
-    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)
+    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat),
+    FOREIGN KEY (id_domicilio) REFERENCES Domicilio(id_dom)  -- Adding the foreign key reference to Domicilio
 );
+
 
 CREATE TABLE Parque_de_Diversiones (
     id_entretenimiento INT,
@@ -158,12 +161,11 @@ CREATE TABLE Parque_de_Diversiones (
 );
 
 CREATE TABLE Evento (
-    id_entretenimiento INT,
+    id_entretenimiento INT PRIMARY KEY,
     fecha DATE,
     fecha_inicio DATE,
     fecha_fin DATE,
-    cuit VARCHAR(20),
-    PRIMARY KEY (id_entretenimiento, fecha),
+    cuit VARCHAR(50),
     FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha),
     FOREIGN KEY (cuit) REFERENCES Empresa(cuit)
 );
@@ -175,9 +177,11 @@ CREATE TABLE Atraccion (
     id_caracteristica INT,
     id_parque INT,
     fecha_parque DATE,
+    min_categoria VARCHAR(100),  -- Added column for min_categoria
     PRIMARY KEY (id_atraccion, fecha),
     FOREIGN KEY (id_caracteristica) REFERENCES Caracteristica(id_caracteristica),
-    FOREIGN KEY (id_parque, fecha_parque) REFERENCES Parque_de_Diversiones(id_entretenimiento, fecha)
+    FOREIGN KEY (id_parque, fecha_parque) REFERENCES Parque_de_Diversiones(id_entretenimiento, fecha),
+    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)  -- Foreign key to Categoria
 );
 
 -- ==============================================
@@ -236,6 +240,7 @@ CREATE TABLE cat_promo (
     FOREIGN KEY (nombre_cat) REFERENCES Categoria(nombre_cat),
     FOREIGN KEY (ID_promocion) REFERENCES Promocion(ID_promocion)
 );
+
 
 INSERT INTO Pais (ID_pais, Nombre) VALUES (1, 'Northern Mariana Islands');
 INSERT INTO Pais (ID_pais, Nombre) VALUES (2, 'Bouvet Island (Bouvetoya)');
@@ -317,143 +322,153 @@ INSERT INTO Domicilio (id_dom, numero, piso, ID_calle) VALUES (27, '6872', 6, 9)
 INSERT INTO Domicilio (id_dom, numero, piso, ID_calle) VALUES (28, '43098', 1, 7);
 INSERT INTO Domicilio (id_dom, numero, piso, ID_calle) VALUES (29, '50097', 9, 11);
 INSERT INTO Domicilio (id_dom, numero, piso, ID_calle) VALUES (30, '820', 3, 16);
-INSERT INTO Empresa (cuit, razon_social, id_dom) VALUES ('77-1344047', 'Jones Inc', 13);
-INSERT INTO Empresa (cuit, razon_social, id_dom) VALUES ('39-6774229', 'David PLC', 29);
-INSERT INTO Empresa (cuit, razon_social, id_dom) VALUES ('40-9712650', 'Williams, Miller and Sandoval', 30);
-INSERT INTO Empresa (cuit, razon_social, id_dom) VALUES ('86-8770838', 'Donovan-Harris', 21);
-INSERT INTO Empresa (cuit, razon_social, id_dom) VALUES ('50-4004485', 'Foster-Powers', 15);
-INSERT INTO Ranking (id_ranking, peso_imp) VALUES (1, 3);
-INSERT INTO Ranking (id_ranking, peso_imp) VALUES (2, 5);
+INSERT INTO Empresa (CUIT, razon_social, id_dom) VALUES ('202970753705', 'Miller, Lopez and Larson', 9);
+INSERT INTO Empresa (CUIT, razon_social, id_dom) VALUES ('201599707677', 'Hensley, Powell and David', 24);
+INSERT INTO Empresa (CUIT, razon_social, id_dom) VALUES ('207805745017', 'Sanchez, Wheeler and Harvey', 29);
+INSERT INTO Empresa (CUIT, razon_social, id_dom) VALUES ('207801222128', 'Sandoval-Cunningham', 12);
+INSERT INTO Empresa (CUIT, razon_social, id_dom) VALUES ('205284391408', 'Donovan-Harris', 17);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (43271130, 'John', 'Foster', '+1-647-451-0799x11838', 16);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (43855396, 'Nicole', 'Suarez', '(442)678-4980x841', 3);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (39936571, 'Pamela', 'Newton', '(944)693-5348', 25);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (38852264, 'Christopher', 'Henderson', '300-352-4278x680', 2);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (49593385, 'Rebecca', 'Gardner', '(598)326-2045x053', 28);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (43933742, 'Kimberly', 'Henson', '(392)832-2602x56342', 4);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (38649691, 'Michele', 'Walker', '754.833.0365x414', 5);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (49400422, 'Tina', 'Herrera', '8147294019', 21);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (43262632, 'Samuel', 'Joyce', '569-734-0608', 6);
+INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (45235969, 'Chad', 'Beck', '895-814-8465x64823', 26);
+INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (1, 'Adkins, Thompson and Carroll', 'Transferencia');
+INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (2, 'Kelley-Smith', 'Débito');
+INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (3, 'Clark-Floyd', 'Transferencia');
+INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (4, 'Pena, Marshall and Ramos', 'Crédito');
+INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (5, 'Dixon Ltd', 'Débito');
+INSERT INTO Ranking (id_ranking, peso_imp) VALUES (1, 1);
+INSERT INTO Ranking (id_ranking, peso_imp) VALUES (2, 2);
 INSERT INTO Ranking (id_ranking, peso_imp) VALUES (3, 3);
 INSERT INTO Ranking (id_ranking, peso_imp) VALUES (4, 4);
-INSERT INTO Ranking (id_ranking, peso_imp) VALUES (5, 9);
-INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Bronze', 5850.8, 772.31, 1);
-INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Silver', 4855.9, 625.18, 2);
-INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Gold', 4257.97, 997.59, 3);
-INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Platinum', 2244.99, 544.16, 4);
-INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Diamond', 7802.04, 874.99, 5);
-INSERT INTO Promocion (ID_promocion, fecha_inicio, fecha_fin, descuento) VALUES (1, '2025-02-28 06:05:15', '2025-05-28 00:54:30', 14);
-INSERT INTO Promocion (ID_promocion, fecha_inicio, fecha_fin, descuento) VALUES (2, '2025-03-03 09:29:33', '2025-03-17 11:34:04', 45);
-INSERT INTO Promocion (ID_promocion, fecha_inicio, fecha_fin, descuento) VALUES (3, '2025-01-02 19:24:47', '2025-04-01 19:10:42', 15);
-INSERT INTO Promocion (ID_promocion, fecha_inicio, fecha_fin, descuento) VALUES (4, '2025-05-01 14:48:42', '2025-05-28 22:44:48', 48);
-INSERT INTO Promocion (ID_promocion, fecha_inicio, fecha_fin, descuento) VALUES (5, '2025-01-20 09:56:47', '2025-02-03 15:21:57', 32);
-INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (1, 'Note', 176, 6);
-INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (2, 'Different', 149, 11);
-INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (3, 'Move', 176, 12);
-INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (4, 'Evidence', 167, 9);
-INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (5, 'Cause', 170, 18);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (56843172, 'Nicole', 'Suarez', '(442)678-4980x841', 1);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (25492573, 'Pamela', 'Newton', '(944)693-5348', 22);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (16818112, 'Christopher', 'Henderson', '300-352-4278x680', 24);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (30005727, 'Amy', 'Davenport', '001-782-562-0450', 4);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (43491314, 'Elizabeth', 'Gomez', '+1-469-723-2260', 22);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (65259205, 'Leah', 'Shields', '942.716.0733', 29);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (50962024, 'Lori', 'Savage', '803.765.4145', 18);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (13704481, 'Darrell', 'Waller', '(894)301-9655', 25);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (61700055, 'Rachel', 'Lee', '7607883561', 9);
-INSERT INTO Titular (DNI, Nombre, Apellido, Celular, id_dom) VALUES (99038359, 'Melanie', 'Cortez', '684-865-6482x3662', 25);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (1, 'https://dummyimage.com/0x622', True, 3204.81, 56843172);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (2, 'https://dummyimage.com/880x659', False, 557.76, 25492573);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (3, 'https://placekitten.com/905/437', False, 2173.83, 16818112);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (4, 'https://dummyimage.com/347x173', False, 2268.62, 30005727);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (5, 'https://picsum.photos/686/191', False, 4769.08, 43491314);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (6, 'https://picsum.photos/635/460', True, 4379.26, 65259205);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (7, 'https://picsum.photos/50/94', False, 1316.95, 50962024);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (8, 'https://dummyimage.com/149x932', False, 2502.93, 13704481);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (9, 'https://dummyimage.com/398x786', False, 893.26, 61700055);
-INSERT INTO Tarjeta (ID_tarjeta, foto, estado, Total_gastado, DNI) VALUES (10, 'https://placekitten.com/499/302', False, 4563.14, 99038359);
-INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (1, 'Stafford Inc', 'Transferencia');
-INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (2, 'Robinson-Brock', 'Débito');
-INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (3, 'Holmes, Williams and Wright', 'Transferencia');
-INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (4, 'Bryant Group', 'Transferencia');
-INSERT INTO Medio_de_Pago (id_medio, banco, tipo) VALUES (5, 'Schmidt, Hansen and Stewart', 'Transferencia');
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (1, '2025-03-27 22:32:29', '2025-05-25 00:00:00', 279.02, False, 65259205, 2);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (2, '2025-04-09 00:26:12', '2025-05-20 00:00:00', 585.44, False, 61700055, 1);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (3, '2025-03-28 14:06:28', '2025-04-12 00:00:00', 639.05, False, 13704481, 1);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (4, '2025-04-03 04:08:35', '2025-05-16 00:00:00', 200.68, True, 65259205, 3);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (5, '2025-02-18 00:13:14', '2025-04-12 00:00:00', 315.51, False, 30005727, 5);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (6, '2025-04-12 05:25:59', '2025-05-29 00:00:00', 952.25, False, 25492573, 4);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (7, '2025-02-16 10:57:59', '2025-04-10 00:00:00', 834.42, False, 61700055, 2);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (8, '2025-01-16 01:05:54', '2025-06-03 00:00:00', 215.55, True, 13704481, 5);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (9, '2025-02-15 12:49:09', '2025-04-08 00:00:00', 248.61, True, 61700055, 5);
-INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (10, '2025-03-04 01:57:16', '2025-03-19 00:00:00', 480.82, True, 30005727, 5);
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (1, '2025-01-30 06:55:18', 'Reyes and Sons', 155.95, 'Evento', 'Gold');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (2, '2025-02-11 13:05:33', 'Perry LLC', 91.82, 'Parque', 'Platinum');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (3, '2025-04-16 08:45:04', 'Perry-Clark', 181.93, 'Parque', 'Bronze');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (4, '2025-03-23 14:00:38', 'Stein-Silva', 64.62, 'Evento', 'Gold');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (5, '2025-01-04 19:01:31', 'James, Smith and Bell', 23.79, 'Evento', 'Diamond');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (6, '2025-03-17 17:28:10', 'Medina-Navarro', 59.64, 'Evento', 'Bronze');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (7, '2025-04-28 03:21:38', 'Freeman LLC', 61.21, 'Evento', 'Gold');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (8, '2025-03-26 15:08:34', 'Johnson-Rogers', 32.75, 'Evento', 'Gold');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (9, '2025-03-20 12:15:08', 'Martin, Mcdonald and Anderson', 140.42, 'Evento', 'Diamond');
-INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria) VALUES (10, '2025-05-01 19:55:39', 'Johnson, Long and Elliott', 43.82, 'Parque', 'Silver');
-INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (2, '2025-02-11 13:05:33');
-INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (3, '2025-04-16 08:45:04');
-INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (10, '2025-05-01 19:55:39');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (1, '2025-01-30 06:55:18', '2025-01-30 06:55:18', '2025-02-04 00:00:00', '86-8770838');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (4, '2025-03-23 14:00:38', '2025-03-23 14:00:38', '2025-03-31 00:00:00', '86-8770838');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (5, '2025-01-04 19:01:31', '2025-01-04 19:01:31', '2025-05-08 00:00:00', '39-6774229');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (6, '2025-03-17 17:28:10', '2025-03-17 17:28:10', '2025-04-27 00:00:00', '77-1344047');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (7, '2025-04-28 03:21:38', '2025-04-28 03:21:38', '2025-05-04 00:00:00', '77-1344047');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (8, '2025-03-26 15:08:34', '2025-03-26 15:08:34', '2025-05-09 00:00:00', '86-8770838');
-INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (9, '2025-03-20 12:15:08', '2025-03-20 12:15:08', '2025-04-06 00:00:00', '40-9712650');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (1, '2025-01-10 18:20:36', 70.5, 1, 3, '2025-04-16 08:45:04');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (2, '2025-02-20 12:24:58', 103.22, 1, 10, '2025-05-01 19:55:39');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (3, '2025-03-15 14:45:07', 69.35, 3, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (4, '2025-03-05 13:34:26', 48.57, 2, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (5, '2025-02-11 02:24:30', 75.56, 4, 10, '2025-05-01 19:55:39');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (6, '2025-03-30 07:03:08', 52.6, 2, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (7, '2025-03-05 11:12:42', 74.82, 5, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (8, '2025-03-07 12:51:59', 21.83, 5, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (9, '2025-03-15 14:51:22', 145.81, 2, 2, '2025-02-11 13:05:33');
-INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, fecha_parque) VALUES (10, '2025-02-24 00:46:11', 69.87, 4, 2, '2025-02-11 13:05:33');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (1, '2025-02-27 00:00:00', 132.32, 4, 7, 1, '2025-01-30 06:55:18', 3, '2025-03-15 14:45:07');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (2, '2025-03-30 00:00:00', 144.21, 7, 5, 8, '2025-03-26 15:08:34', 5, '2025-02-11 02:24:30');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (3, '2024-10-21 00:00:00', 110.11, 9, 8, 3, '2025-04-16 08:45:04', 4, '2025-03-05 13:34:26');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (4, '2024-08-16 00:00:00', 231.95, 1, 10, 9, '2025-03-20 12:15:08', 1, '2025-01-10 18:20:36');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (5, '2025-03-31 00:00:00', 165.77, 1, 1, 10, '2025-05-01 19:55:39', 8, '2025-03-07 12:51:59');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (6, '2024-06-11 00:00:00', 51.63, 9, 3, 1, '2025-01-30 06:55:18', 9, '2025-03-15 14:51:22');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (7, '2024-11-09 00:00:00', 212.31, 3, 2, 10, '2025-05-01 19:55:39', 2, '2025-02-20 12:24:58');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (8, '2024-05-18 00:00:00', 96.48, 4, 7, 2, '2025-02-11 13:05:33', 10, '2025-02-24 00:46:11');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (9, '2025-02-25 00:00:00', 143.19, 10, 1, 10, '2025-05-01 19:55:39', 2, '2025-02-20 12:24:58');
-INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (10, '2024-12-06 00:00:00', 282.37, 10, 10, 9, '2025-03-20 12:15:08', 6, '2025-03-30 07:03:08');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (1, '2023-06-21 00:00:00', 4, 'Gold');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (2, '2024-02-07 00:00:00', 4, 'Gold');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (3, '2023-11-02 00:00:00', 7, 'Silver');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (4, '2024-09-27 00:00:00', 5, 'Platinum');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (5, '2023-07-04 00:00:00', 6, 'Bronze');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (6, '2025-01-07 00:00:00', 1, 'Platinum');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (7, '2024-09-29 00:00:00', 10, 'Diamond');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (8, '2023-06-12 00:00:00', 2, 'Bronze');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (9, '2024-12-17 00:00:00', 9, 'Silver');
-INSERT INTO HistorialCategoria (id_historial, fecha_de_inicio, ID_tarjeta, nombre_cat) VALUES (10, '2023-06-05 00:00:00', 9, 'Gold');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (2, 6, '2025-03-30 07:03:08');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (1, 4, '2025-03-05 13:34:26');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (3, 5, '2025-02-11 02:24:30');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (2, 8, '2025-03-07 12:51:59');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (5, 5, '2025-02-11 02:24:30');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (5, 9, '2025-03-15 14:51:22');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (1, 9, '2025-03-15 14:51:22');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (3, 2, '2025-02-20 12:24:58');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (2, 5, '2025-02-11 02:24:30');
-INSERT INTO Promocion_Atraccion (ID_promocion, id_atraccion, fecha) VALUES (1, 2, '2025-02-20 12:24:58');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (5, 3, '2025-04-16 08:45:04');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (3, 5, '2025-01-04 19:01:31');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (5, 4, '2025-03-23 14:00:38');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (3, 4, '2025-03-23 14:00:38');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (3, 9, '2025-03-20 12:15:08');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (4, 5, '2025-01-04 19:01:31');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (1, 2, '2025-02-11 13:05:33');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (1, 1, '2025-01-30 06:55:18');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (3, 3, '2025-04-16 08:45:04');
-INSERT INTO Promo_Entret (ID_promocion, id_entretenimiento, fecha) VALUES (4, 9, '2025-03-20 12:15:08');
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Platinum', 5);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Bronze', 1);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Bronze', 2);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Diamond', 1);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Gold', 5);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Diamond', 2);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Platinum', 2);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Bronze', 3);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Gold', 1);
-INSERT INTO cat_promo (nombre_cat, ID_promocion) VALUES ('Gold', 2);
+INSERT INTO Ranking (id_ranking, peso_imp) VALUES (5, 5);
+INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Bronze', 9739.71, 874.7, 1);
+INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Silver', 1103.33, 748.65, 2);
+INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Gold', 7135.39, 583.27, 3);
+INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Diamond', 3401.43, 676.87, 4);
+INSERT INTO Categoria (nombre_cat, min_total_anual, promedio_mensual, id_ranking) VALUES ('Platinum', 2003.97, 491.29, 5);
+INSERT INTO Promocion (id_promocion, fecha_inicio, fecha_fin, descuento) VALUES (1, '2025-02-02 22:49:09', '2025-02-17 22:49:09', 5);
+INSERT INTO Promocion (id_promocion, fecha_inicio, fecha_fin, descuento) VALUES (2, '2025-05-08 22:28:01', '2025-06-01 22:28:01', 21);
+INSERT INTO Promocion (id_promocion, fecha_inicio, fecha_fin, descuento) VALUES (3, '2025-01-17 11:10:33', '2025-02-03 11:10:33', 16);
+INSERT INTO Promocion (id_promocion, fecha_inicio, fecha_fin, descuento) VALUES (4, '2025-02-25 02:32:25', '2025-03-14 02:32:25', 11);
+INSERT INTO Promocion (id_promocion, fecha_inicio, fecha_fin, descuento) VALUES (5, '2025-04-11 02:10:49', '2025-05-09 02:10:49', 45);
+INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (1, 'Record', 138, 18);
+INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (2, 'Property', 181, 13);
+INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (3, 'President', 177, 8);
+INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (4, 'Government', 119, 10);
+INSERT INTO Caracteristica (id_caracteristica, nombre_atraccion, altura_min, edad_min) VALUES (5, 'Better', 197, 7);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (1, 'https://picsum.photos/481/635', True, 431.36, 43262632);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (2, 'https://picsum.photos/407/301', False, 0.0, 45235969);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (3, 'https://dummyimage.com/94x501', True, 896.61, 49400422);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (4, 'https://dummyimage.com/149x932', False, 54.49, 43855396);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (5, 'https://dummyimage.com/398x786', True, 0.0, 49593385);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (6, 'https://picsum.photos/818/499', True, 0.0, 43271130);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (7, 'https://dummyimage.com/11x218', True, 0.0, 45235969);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (8, 'https://placekitten.com/448/360', False, 37.45, 43855396);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (9, 'https://placekitten.com/951/102', True, 80.14, 43855396);
+INSERT INTO Tarjeta (id_tarjeta, foto, estado, Total_gastado, DNI) VALUES (10, 'https://dummyimage.com/510x248', False, 0.0, 39936571);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (1, '2025-01-26 21:24:18', '2025-04-01 00:00:00', 294.66, False, 49400422, 2);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (2, '2025-05-10 15:08:15', '2025-04-14 00:00:00', 133.39, False, 49400422, 5);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (3, '2025-04-19 12:46:50', '2025-04-26 00:00:00', 91.94, True, 43855396, 5);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (4, '2025-03-03 14:42:56', '2025-03-27 00:00:00', 368.52, False, 43262632, 3);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (5, '2025-04-29 23:10:00', '2025-04-09 00:00:00', 62.84, False, 43262632, 3);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (6, '2025-03-24 20:45:21', '2025-04-17 00:00:00', 431.11, True, 49400422, 4);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (7, '2025-03-28 14:06:28', '2025-01-31 00:00:00', 80.14, True, 43855396, 2);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (8, '2025-04-03 04:08:35', '2025-03-29 00:00:00', 0.0, True, 39936571, 1);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (9, '2025-02-20 07:55:12', '2025-02-18 00:00:00', 37.45, True, 49400422, 2);
+INSERT INTO Factura (Nro_factura, fecha_emision, fecha_vencimiento, importe_total, pagado, DNI, id_medio_pago) VALUES (10, '2025-05-04 19:43:03', '2025-02-23 00:00:00', 0.0, True, 43271130, 1);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (1, '2025-12-03 01:58:36', 'Simsview Fest', 25.65, 'Evento', 'Gold', 29);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (2, '2025-11-01 11:01:12', 'Lake Justinview Fest', 62.84, 'Evento', 'Diamond', 17);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (3, '2025-09-22 01:26:10', 'Patricialand Fest', 43.82, 'Evento', 'Platinum', 18);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (4, '2025-07-07 08:51:00', 'Parque Edward', 161.23, 'Parque', 'Diamond', 8);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (5, '2025-10-10 09:15:28', 'Lake Jason Fest', 37.45, 'Evento', 'Diamond', 4);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (6, '2025-10-22 17:57:33', 'Parque Rick', 94.0, 'Parque', 'Bronze', 14);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (7, '2025-12-11 08:36:45', 'Perryborough Fest', 92.47, 'Evento', 'Gold', 2);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (8, '2025-10-24 19:07:54', 'Steinshire Fest', 54.49, 'Evento', 'Platinum', 8);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (9, '2025-05-22 05:09:40', 'Parque Melissa', 95.94, 'Parque', 'Gold', 5);
+INSERT INTO Entretenimiento (id_entretenimiento, fecha, nombre, precio, tipo, min_categoria, id_domicilio) VALUES (10, '2025-12-24 04:55:59', 'Parque Omar', 177.41, 'Parque', 'Bronze', 8);
+INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (4, '2025-07-07 08:51:00');
+INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (6, '2025-10-22 17:57:33');
+INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (9, '2025-05-22 05:09:40');
+INSERT INTO Parque_de_Diversiones (id_entretenimiento, fecha) VALUES (10, '2025-12-24 04:55:59');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (1, '2025-12-03 01:58:36', '2025-05-14 00:00:00', '2025-05-16 00:00:00', '207801222128');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (2, '2025-11-01 11:01:12', '2025-05-14 00:00:00', '2025-09-27 00:00:00', '205284391408');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (3, '2025-09-22 01:26:10', '2025-05-14 00:00:00', '2025-09-06 00:00:00', '202970753705');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (5, '2025-10-10 09:15:28', '2025-05-14 00:00:00', '2026-03-02 00:00:00', '202970753705');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (7, '2025-12-11 08:36:45', '2025-05-14 00:00:00', '2025-10-12 00:00:00', '205284391408');
+INSERT INTO Evento (id_entretenimiento, fecha, fecha_inicio, fecha_fin, cuit) VALUES (8, '2025-10-24 19:07:54', '2025-05-14 00:00:00', '2026-04-10 00:00:00', '202970753705');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (1, '2025-03-23 08:46:50', 2815.92, 2, 4, 'Silver');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (2, '2025-04-15 12:17:22', 1714.1, 2, 10, 'Diamond');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (3, '2025-04-17 01:09:39', 911.59, 1, 4, 'Diamond');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (4, '2025-04-28 03:21:38', 2816.3, 4, 9, 'Gold');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (5, '2025-02-12 19:47:05', 2241.48, 5, 10, 'Diamond');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (6, '2025-04-05 19:18:51', 974.74, 2, 6, 'Bronze');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (7, '2025-02-12 14:34:44', 2369.94, 1, 4, 'Bronze');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (8, '2025-02-22 23:58:14', 1757.13, 5, 10, 'Silver');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (9, '2025-03-26 15:08:34', 2901.95, 1, 4, 'Silver');
+INSERT INTO Atraccion (id_atraccion, fecha, precio, id_caracteristica, id_parque, min_categoria) VALUES (10, '2025-04-05 07:15:20', 1987.59, 2, 4, 'Diamond');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (5, 2, '2025-11-01 11:01:12');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (5, 4, '2025-07-07 08:51:00');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (1, 10, '2025-12-24 04:55:59');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (4, 10, '2025-12-24 04:55:59');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (5, 10, '2025-12-24 04:55:59');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (3, 6, '2025-10-22 17:57:33');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (3, 4, '2025-07-07 08:51:00');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (4, 3, '2025-07-07 08:51:00');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (4, 5, '2025-10-10 09:15:28');
+INSERT INTO Promo_Entret (id_promocion, id_entretenimiento, fecha) VALUES (1, 6, '2025-10-22 17:57:33');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (4, 1, '2025-03-23 08:46:50');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (5, 10, '2025-04-05 07:15:20');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (1, 2, '2025-04-15 12:17:22');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (2, 9, '2025-03-26 15:08:34');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (3, 9, '2025-03-26 15:08:34');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (3, 3, '2025-04-17 01:09:39');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (2, 2, '2025-04-15 12:17:22');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (3, 6, '2025-04-05 19:18:51');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (4, 3, '2025-04-17 01:09:39');
+INSERT INTO Promocion_Atraccion (id_promocion, id_atraccion, fecha) VALUES (5, 9, '2025-03-26 15:08:34');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (1, '2025-11-01 11:01:12', 62.84, 1, 3, 2, '2025-11-01 11:01:12', 3, '2025-04-17 01:09:39');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (2, '2025-11-01 11:01:12', 62.84, 5, 1, 2, '2025-11-01 11:01:12', 9, '2025-03-26 15:08:34');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (3, '2025-10-10 09:15:28', 37.45, 3, 8, 5, '2025-10-10 09:15:28', 10, '2025-04-05 07:15:20');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (4, '2025-07-07 08:51:00', 161.23, 4, 1, 4, '2025-07-07 08:51:00', 5, '2025-02-12 19:47:05');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (5, '2025-10-10 09:15:28', 37.45, 9, 3, 5, '2025-10-10 09:15:28', 1, '2025-03-23 08:46:50');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (6, '2025-10-10 09:15:28', 37.45, 2, 3, 5, '2025-10-10 09:15:28', 1, '2025-03-23 08:46:50');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (7, '2025-09-22 01:26:10', 43.82, 1, 3, 3, '2025-09-22 01:26:10', 5, '2025-02-12 19:47:05');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (8, '2025-10-24 19:07:54', 54.49, 3, 9, 8, '2025-10-24 19:07:54', 9, '2025-03-26 15:08:34');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (9, '2025-12-03 01:58:36', 25.65, 7, 9, 1, '2025-12-03 01:58:36', 2, '2025-04-15 12:17:22');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (10, '2025-05-22 05:09:40', 95.94, 2, 3, 9, '2025-05-22 05:09:40', 1, '2025-03-23 08:46:50');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (11, '2025-12-11 08:36:45', 92.47, 6, 3, 7, '2025-12-11 08:36:45', 3, '2025-04-17 01:09:39');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (12, '2025-10-22 17:57:33', 94.0, 1, 3, 6, '2025-10-22 17:57:33', 1, '2025-03-23 08:46:50');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (13, '2025-07-07 08:51:00', 161.23, 6, 3, 4, '2025-07-07 08:51:00', 2, '2025-04-15 12:17:22');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (14, '2025-12-24 04:55:59', 177.41, 6, 3, 10, '2025-12-24 04:55:59', 3, '2025-04-17 01:09:39');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (15, '2025-09-22 01:26:10', 43.82, 4, 1, 3, '2025-09-22 01:26:10', 7, '2025-02-12 14:34:44');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (16, '2025-10-22 17:57:33', 94.0, 1, 3, 6, '2025-10-22 17:57:33', 7, '2025-02-12 14:34:44');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (17, '2025-09-22 01:26:10', 43.82, 4, 1, 3, '2025-09-22 01:26:10', 2, '2025-04-15 12:17:22');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (18, '2025-10-24 19:07:54', 54.49, 7, 4, 8, '2025-10-24 19:07:54', 4, '2025-04-28 03:21:38');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (19, '2025-10-22 17:57:33', 94.0, 4, 1, 6, '2025-10-22 17:57:33', 5, '2025-02-12 19:47:05');
+INSERT INTO Linea_Factura (id_linea, fecha_de_consumo, monto, nro_factura, id_tarjeta, id_entretenimiento, fecha_entret, id_atraccion, fecha_atraccion) VALUES (20, '2025-12-03 01:58:36', 25.65, 4, 1, 1, '2025-12-03 01:58:36', 4, '2025-04-28 03:21:38');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (7, 'Gold', '2020-03-31 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (5, 'Bronze', '2023-04-23 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (5, 'Gold', '2022-11-10 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (9, 'Diamond', '2023-06-10 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (9, 'Gold', '2021-05-27 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (1, 'Bronze', '2023-12-23 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (5, 'Silver', '2021-01-31 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (10, 'Gold', '2025-04-17 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (1, 'Bronze', '2024-07-17 00:00:00');
+INSERT INTO HistorialCategoria (id_tarjeta, nombre_cat, fecha_asignacion) VALUES (10, 'Diamond', '2020-03-24 00:00:00');
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Gold', 3);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Diamond', 5);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Platinum', 1);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Silver', 3);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Bronze', 4);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Bronze', 5);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Platinum', 2);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Gold', 4);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Bronze', 3);
+INSERT INTO cat_promo (nombre_cat, id_promocion) VALUES ('Platinum', 3);
