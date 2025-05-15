@@ -4,6 +4,8 @@ from faker import Faker
 import random
 from collections import defaultdict
 from datetime import datetime, timedelta
+import calendar
+import random
 
 
 # Initialize Faker with a seed for reproducibility
@@ -44,29 +46,30 @@ def generate_ranking_table(num_rows=5):
 def generate_empresa_table(domicilio_data, num_rows=5):
     empresas = []
 
-    for i in range(1, num_rows + 1):
-        # Generate a unique cuit for the company (simulating a CUIT format)
-        cuit = f"20{random.randint(1000000000, 9999999999)}"  # Example CUIT format: 20XXXXXXXXXX
+    # Ensure we don't try to sample more domicilios than available
+    num_rows = min(num_rows, len(domicilio_data))
+    
+    # Sample unique domicilios without replacement
+    selected_domicilios = random.sample(domicilio_data, num_rows)
 
-        # Choose a random domicilio
-        domicilio = random.choice(domicilio_data)
-        id_domicilio = domicilio["id_dom"]
+    for i, domicilio in enumerate(selected_domicilios, start=1):
+        # Generate a unique CUIT (you might want to validate uniqueness externally)
+        cuit = f"20{random.randint(2000000000, 6000000000)}"
 
-        # Generate company data
         empresa = {
             "CUIT": cuit,
             "razon_social": fake.company(),
-            "id_dom": id_domicilio
+            "id_dom": domicilio["id_dom"]
         }
 
         empresas.append(empresa)
 
     return empresas
 
+
 # ----- 2. FIRST-LEVEL DEPENDENTS -----
 def generate_categoria_table(rankings):
     categoria_names = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"]
-    random.shuffle(categoria_names)
     return [{
         "nombre_cat": categoria_names[i],
         "min_total_anual": round(random.uniform(1000, 10000), 2),
@@ -77,7 +80,7 @@ def generate_categoria_table(rankings):
 def generate_promocion_table(num_rows=5):
     data = []
     for i in range(1, num_rows + 1):
-        start_date = fake.date_time_this_year()
+        start_date = fake.date_time_this_year() + timedelta(days=random.randint(20, 90))
         end_date = start_date + timedelta(days=random.randint(1, 30))
         data.append({
             "id_promocion": i,
@@ -89,22 +92,29 @@ def generate_promocion_table(num_rows=5):
 
 def generate_tarjeta_table(titulares, num_rows=10):
     tarjetas = []
-    
+    true_estado_assigned = set()  # Keep track of DNIs that have a True card assigned
+
     for i in range(1, num_rows + 1):
-        titular = random.choice(titulares)  # Randomly pick a Titular
-        id_tarjeta = i
+        titular = random.choice(titulares)
+        dni = titular["DNI"]
         
-        # Calculate total_gastado for this tarjeta by referencing the tarjeta_totals dictionary
+        # Assign estado = True only if this DNI hasn't had a True yet
+        if dni not in true_estado_assigned:
+            estado = True
+            true_estado_assigned.add(dni)
+        else:
+            estado = False
 
         tarjetas.append({
-            "id_tarjeta": id_tarjeta,
+            "id_tarjeta": i,
             "foto": fake.image_url(),
-            "estado": random.choice([True, False]),  # Random boolean for 'estado'
-            "Total_gastado": -1,  # Use the calculated total_gastado
-            "DNI": titular["DNI"],  # Foreign Key: linking to Titular
+            "estado": estado,
+            "Total_gastado": -1,  # Placeholder, to be updated later
+            "DNI": dni,
         })
     
     return tarjetas
+
 
 
 
@@ -135,6 +145,23 @@ def generate_factura_table(titulares, medio_pago, tarjetas, num_rows=10):
     # Filter titulares to only those who have a tarjeta
     titulares_con_tarjeta = [titular for titular in titulares if titular["DNI"] in dnis_con_tarjeta]
 
+    # Generate a random emission date
+    fecha_emision = fake.date_time_this_year()
+
+    # Add 0 to 3 months manually
+    months_to_add = random.randint(0, 3)
+    year = fecha_emision.year
+    month = fecha_emision.month + months_to_add
+
+    # Adjust year and month if we go over December
+    if month > 12:
+        year += month // 12
+        month = month % 12 or 12  # Handle month == 0 case
+
+    # Get last day of the target month
+    last_day = calendar.monthrange(year, month)[1]
+    fecha_vencimiento = datetime.datetime(year, month, last_day)
+
     for i in range(1, num_rows + 1):
         if not titulares_con_tarjeta:
             break  # Stop if no eligible titular remains
@@ -142,7 +169,7 @@ def generate_factura_table(titulares, medio_pago, tarjetas, num_rows=10):
         titular = random.choice(titulares_con_tarjeta)
         medio = random.choice(medio_pago)
         fecha_emision = fake.date_time_this_year()
-        fecha_vencimiento = fake.date_this_year()
+        fecha_vencimiento = fake.date_between(start_date=fecha_emision, end_date="+1m")
         pagado = random.choice([True, False])
 
         row = {
@@ -162,7 +189,10 @@ def generate_factura_table(titulares, medio_pago, tarjetas, num_rows=10):
 
 
 
-def generate_linea_factura_table(facturas, tarjetas, entretenimientos, atracciones, promo_entret_table, promociones, num_rows=20):
+def generate_linea_factura_table(
+    facturas, tarjetas, entretenimientos, atracciones,
+    promo_entret_table, promociones, lista_precio, num_rows=20
+):
     data = []
     linea_id = 1
     factura_totals = defaultdict(float)
@@ -188,6 +218,15 @@ def generate_linea_factura_table(facturas, tarjetas, entretenimientos, atraccion
     for pe in promo_entret_table:
         promo_entret_lookup[pe["id_entretenimiento"]].append(pe["id_promocion"])
 
+    # Group precios by entretenimiento and atracción
+    precios_por_entret = defaultdict(list)
+    precios_por_atracc = defaultdict(list)
+    for lp in lista_precio:
+        if lp["id_entretenimiento"] is not None:
+            precios_por_entret[lp["id_entretenimiento"]].append(lp)
+        elif lp["id_atraccion"] is not None:
+            precios_por_atracc[lp["id_atraccion"]].append(lp)
+
     for _ in range(num_rows):
         factura = random.choice(facturas)
         dni = factura["DNI"]
@@ -196,36 +235,66 @@ def generate_linea_factura_table(facturas, tarjetas, entretenimientos, atraccion
             continue  # No tarjeta for this DNI
 
         tarjeta = random.choice(tarjetas_por_dni[dni])
-        entret = random.choice(entretenimientos)
 
-        precio = entret["precio"]
-        fecha_consumo = entret["fecha"]
-        descuento_total = 0
+        use_entret = (random.choice(["entret", "atrac"]) == "entret") or not atracciones
 
-        # Apply discounts
-        for promo_id in promo_entret_lookup[entret["id_entretenimiento"]]:
-            promo = promociones_dict.get(promo_id)
-            if promo and promo["fecha_inicio"] <= fecha_consumo <= promo["fecha_fin"]:
-                descuento_total = max(descuento_total, promo["descuento"])
+        if use_entret and entretenimientos:
+            entret = random.choice(entretenimientos)
+            precios = precios_por_entret.get(entret["id_entretenimiento"], [])
+            if not precios:
+                continue
+            precio_row = random.choice(precios)
 
-        precio_final = round(precio * (1 - descuento_total / 100), 2)
 
-        # Pick random attraction
-        atraccion = random.choice(atracciones) if atracciones else None
-        id_atraccion = atraccion["id_atraccion"] if atraccion else None
-        fecha_atraccion = atraccion["fecha"] if atraccion else None
 
-        row = {
-            "id_linea": linea_id,
-            "fecha_de_consumo": fecha_consumo,
-            "monto": precio_final,
-            "nro_factura": factura["Nro_factura"],
-            "id_tarjeta": tarjeta["id_tarjeta"],
-            "id_entretenimiento": entret["id_entretenimiento"],
-            "fecha_entret": entret["fecha"],
-            "id_atraccion": id_atraccion,
-            "fecha_atraccion": fecha_atraccion
-        }
+            # Calculate discount if applicable
+            descuento_total = 0
+            for promo_id in promo_entret_lookup.get(entret["id_entretenimiento"], []):
+                promo = promociones_dict.get(promo_id)
+                # Convert promo start and end to date if they are datetime
+                start_date = promo["fecha_inicio"]
+                end_date = promo["fecha_fin"]
+                if start_date  <= end_date:
+                    descuento_total = max(descuento_total, promo["descuento"])
+                    
+                if promo and promo["fecha_inicio"]  <= promo["fecha_fin"]:
+                    descuento_total = max(descuento_total, promo["descuento"])
+
+            precio_final = round(precio_row["precio"] * (1 - descuento_total / 100), 2)
+
+            row = {
+                "id_linea": linea_id,
+                "fecha_de_consumo": precio_row["fecha"],
+                "monto": precio_final,
+                "nro_factura": factura["Nro_factura"],
+                "id_tarjeta": tarjeta["id_tarjeta"],
+                "id_entretenimiento": entret["id_entretenimiento"],
+                "id_atraccion": None,
+                "id_precio": precio_row["id_precio"]
+            }
+
+        elif atracciones:
+            atr = random.choice(atracciones)
+            precios = precios_por_atracc.get(atr["id_atraccion"], [])
+            if not precios:
+                continue
+            precio_row = random.choice(precios)
+
+            precio_final = precio_row["precio"]
+
+            row = {
+                "id_linea": linea_id,
+                "fecha_de_consumo": precio_row["fecha"],
+                "monto": precio_final,
+                "nro_factura": factura["Nro_factura"],
+                "id_tarjeta": tarjeta["id_tarjeta"],
+                "id_entretenimiento": atr["id_parque"],  # assuming atraccion has id_entretenimiento
+                "id_atraccion": atr["id_atraccion"],
+                "id_precio": precio_row["id_precio"]
+            }
+
+        else:
+            continue  # No valid data to create a row
 
         data.append(row)
         factura_totals[factura["Nro_factura"]] += precio_final
@@ -239,31 +308,27 @@ def generate_linea_factura_table(facturas, tarjetas, entretenimientos, atraccion
     return data, tarjeta_totals
 
 
+
 def generate_promo_entret_table(promociones, entretenimientos, num_rows=10):
     data = []
     generated_combinations = set()  # Track unique combinations
 
     for _ in range(num_rows):
         # Generate random row data
-        entretenimiento = random.choice(entretenimientos)
         promo_id = random.choice(promociones)["id_promocion"]
-        entretenimiento_id = entretenimiento["id_entretenimiento"]
-        fecha = entretenimiento["fecha"]
+        entretenimiento_id = random.choice(entretenimientos)["id_entretenimiento"]
         
         # Check if the combination already exists
-        while (promo_id, entretenimiento_id, fecha) in generated_combinations:
+        while (promo_id, entretenimiento_id) in generated_combinations:
             promo_id = random.choice(promociones)["id_promocion"]
+            entretenimiento_id = random.choice(entretenimientos)["id_entretenimiento"]
 
-            entretenimiento = random.choice(entretenimientos)
-            entretenimiento_id = entretenimiento["id_entretenimiento"]
-            fecha = entretenimiento["fecha"]
         
         # Add the combination to the set and append the row to data
-        generated_combinations.add((promo_id, entretenimiento_id, fecha))
+        generated_combinations.add((promo_id, entretenimiento_id))
         row = {
             "id_promocion": promo_id,
             "id_entretenimiento": entretenimiento_id,
-            "fecha": fecha
         }
         data.append(row)
     
@@ -277,24 +342,20 @@ def generate_promocion_atraccion_table(promociones, atracciones, num_rows=10):
 
     for _ in range(num_rows):
         # Generate random row data
-        atraccion = random.choice(atracciones)
         promo_id = random.choice(promociones)["id_promocion"]
-        atraccion_id = atraccion["id_atraccion"]
-        fecha = atraccion["fecha"]
+        atraccion_id = random.choice(atracciones)["id_atraccion"]
 
         # Check if the combination already exists
-        while (promo_id, atraccion_id, fecha) in generated_combinations:
+        while (promo_id, atraccion_id) in generated_combinations:
             promo_id = random.choice(promociones)["id_promocion"]
-            atraccion = random.choice(atracciones)
-            atraccion_id = atraccion["id_atraccion"]
-            fecha = atraccion["fecha"]
+
+            atraccion_id = random.choice(atracciones)["id_atraccion"]
 
         # Add the combination to the set and append the row to data
-        generated_combinations.add((promo_id, atraccion_id, fecha))
+        generated_combinations.add((promo_id, atraccion_id))
         row = {
             "id_promocion": promo_id,
             "id_atraccion": atraccion_id,
-            "fecha": fecha
         }
         data.append(row)
 
@@ -357,22 +418,26 @@ def generate_historial_categoria_table(tarjetas, categorias, num_rows=10):
     return data
 
 
-import random
-
 def generate_atraccion_table(caracteristicas, parques, categorias, num_rows=10):
     data = []
     id_counter = 1
+
+    adjectives = [
+    "Mágico", "Vertiginoso", "Explosivo", "Misterioso", "Salvaje",
+    "Intergaláctico", "Encantado", "Peligroso", "Legendario", "Fantástico"]
+
+    nouns = [
+        "Viaje", "Tornado", "Dragón", "Tren", "Caída", "Aventura",
+        "Remolino", "Templo", "Desafío", "Laberinto"]
 
     for _ in range(num_rows):
         parque = random.choice(parques)
 
         row = {
             "id_atraccion": id_counter,
-            "fecha": fake.date_time_this_year(),  # Same fecha as Parque
-            "precio": round(random.uniform(500, 3000), 2),
+            "nombre_atraccion": f"{random.choice(adjectives)} {random.choice(nouns)}",
             "id_caracteristica": random.choice(caracteristicas)["id_caracteristica"],
             "id_parque": parque["id_entretenimiento"],
-            "fecha_parque": parque["fecha"],
             "min_categoria": random.choice(categorias)["nombre_cat"],  # Foreign key to Categoria
         }
 
@@ -386,7 +451,6 @@ def generate_atraccion_table(caracteristicas, parques, categorias, num_rows=10):
 def generate_entretenimiento_table(categorias, domicilios, num_rows=10):
     data = []
     for i in range(1, num_rows + 1):
-        fecha = fake.date_time_this_year(before_now=False, after_now=True)
         nombre_tipo = random.choice(["Evento", "Parque"])
         nombre = (
             fake.city() + " Fest"
@@ -399,9 +463,7 @@ def generate_entretenimiento_table(categorias, domicilios, num_rows=10):
 
         row = {
             "id_entretenimiento": i,
-            "fecha": fecha,
             "nombre": nombre,
-            "precio": round(random.uniform(20, 200), 2),
             "tipo": nombre_tipo,
             "min_categoria": random.choice(categorias)["nombre_cat"],
             "id_domicilio": domicilio["id_dom"]  # Foreign key to Domicilio
@@ -416,7 +478,6 @@ def generate_parque_table(entretenimientos):
         if entret["tipo"] == "Parque":
             row = {
                 "id_entretenimiento": entret["id_entretenimiento"],
-                "fecha": entret["fecha"],  # Referencing the 'fecha' from Entretenimiento
             }
             data.append(row)
     return data
@@ -427,17 +488,46 @@ def generate_evento_table(entretenimientos, empresas):
     for entret in entretenimientos:
         if entret["tipo"] == "Evento":
             # Generate random start and end dates for the event
-            fecha_inicio = fake.date_this_year(before_today=False)
+            fecha_inicio = fake.date_time_this_year() + timedelta(days=random.randint(20, 90))
             fecha_fin = fake.date_between(start_date=fecha_inicio, end_date="+1y")
             
             row = {
                 "id_entretenimiento": entret["id_entretenimiento"],
-                "fecha": entret["fecha"],  # Referencing the 'fecha' from Entretenimiento
                 "fecha_inicio": fecha_inicio,
                 "fecha_fin": fecha_fin,
                 "cuit": random.choice(empresas)["CUIT"]
             }
             data.append(row)
+    return data
+
+def generate_lista_precio(entretenimiento_table, atraccion_table):
+    data = []
+    id_precio = 1
+
+    # First, create at least one price for every entretenimiento
+    for ent in entretenimiento_table:
+        row = {
+            "id_precio": id_precio,
+            "precio": round(random.uniform(50, 150), 2),
+            "fecha": fake.date_time_this_decade() + timedelta(days=random.randint(1, 30)),
+            "id_entretenimiento": ent["id_entretenimiento"],
+            "id_atraccion": None,
+        }
+        data.append(row)
+        id_precio += 1
+
+    # Then, create at least one price for every atraccion
+    for atr in atraccion_table:
+        row = {
+            "id_precio": id_precio,
+            "precio": round(random.uniform(5, 50), 2),
+            "fecha": fake.date_time_this_decade() + timedelta(days=random.randint(1, 30)),
+            "id_entretenimiento": None,
+            "id_atraccion": atr["id_atraccion"]
+        }
+        data.append(row)
+        id_precio += 1
+
     return data
 
 
@@ -538,24 +628,11 @@ def generate_caracteristica_table(num_rows=5):
     for i in range(1, num_rows + 1):
         row = {
             "id_caracteristica": i,
-            "nombre_atraccion": fake.word().capitalize(),
             "altura_min": random.randint(100, 200),
             "edad_min": random.randint(5, 18)
         }
         data.append(row)
     return data
-
-def update_factura_totals(facturas, linea_facturas):
-    factura_totals = defaultdict(float)
-
-    for linea in linea_facturas:
-        factura_totals[linea["nro_factura"]] += linea["monto"]
-
-    for factura in facturas:
-        nro = factura["Nro_factura"]
-        factura["importe_total"] = round(factura_totals[nro], 2)
-
-    return facturas
 
 def calculate_tarjeta_totals(tarjeta_data, linea_facturas):
     tarjeta_totals = defaultdict(float)
@@ -574,41 +651,49 @@ def calculate_tarjeta_totals(tarjeta_data, linea_facturas):
 
 def generate_sql_for_tables():
     # Step 1: Generate Data
-    pais_data = generate_pais_table(num_rows=5)
+    pais_data = generate_pais_table(num_rows=10)
     provincia_data = generate_provincia_table(pais_data, num_rows=10)
     localidad_data = generate_localidad_table(provincia_data, num_rows=15)
-    calle_data = generate_calle_table(localidad_data, num_rows=20)
-    domicilio_data = generate_domicilio_table(calle_data, num_rows=30)
-    empresa_data = generate_empresa_table(domicilio_data, num_rows=5)
-    titular_data = generate_titular_table(domicilio_data, num_rows=10)
+    calle_data = generate_calle_table(localidad_data, num_rows=25)
+    domicilio_data = generate_domicilio_table(calle_data, num_rows=40)
+    empresa_data = generate_empresa_table(domicilio_data, num_rows=15)
+    titular_data = generate_titular_table(domicilio_data, num_rows=20)
     medio_pago_data = generate_medio_pago_table(num_rows=5)
     ranking_data = generate_ranking_table(num_rows=5)
     categoria_data = generate_categoria_table(ranking_data)
-    promocion_data = generate_promocion_table(num_rows=5)
-    caracteristica_data = generate_caracteristica_table(num_rows=5)
-    tarjeta_data = generate_tarjeta_table(titular_data, num_rows=10)
-    factura_data, facturas_por_tarjeta = generate_factura_table(titular_data, medio_pago_data, tarjeta_data, num_rows=10)
-    entretenimiento_data = generate_entretenimiento_table(categoria_data, domicilio_data, num_rows=10)
+    promocion_data = generate_promocion_table(num_rows=40)
+    caracteristica_data = generate_caracteristica_table(num_rows=15)
+    tarjeta_data = generate_tarjeta_table(titular_data, num_rows=25)
+    factura_data, facturas_por_tarjeta = generate_factura_table(titular_data, medio_pago_data, tarjeta_data, num_rows=35)
+    entretenimiento_data = generate_entretenimiento_table(categoria_data, domicilio_data, num_rows=50)
     parque_data = generate_parque_table(entretenimiento_data)
     evento_data = generate_evento_table(entretenimiento_data, empresa_data)
-    atraccion_data = generate_atraccion_table(caracteristica_data, parque_data, categoria_data, num_rows=10)
-    promo_entret_data = generate_promo_entret_table(promocion_data, entretenimiento_data, num_rows=10)
-    promocion_atraccion_data = generate_promocion_atraccion_table(promocion_data, atraccion_data, num_rows=10)
-    linea_factura_data, d = generate_linea_factura_table(factura_data, tarjeta_data, entretenimiento_data, atraccion_data, promo_entret_data, promocion_data, num_rows=20)
-    historial_categoria_data = generate_historial_categoria_table(tarjeta_data, categoria_data, num_rows=10)
-    cat_promo_data = generate_cat_promo_table(categoria_data, promocion_data, num_rows=10)
+    atraccion_data = generate_atraccion_table(caracteristica_data, parque_data, categoria_data, num_rows=25)
+    promo_entret_data = generate_promo_entret_table(promocion_data, entretenimiento_data, num_rows=50)
+    promocion_atraccion_data = generate_promocion_atraccion_table(promocion_data, atraccion_data, num_rows=50)
+
+    # Generate lista_precio ensuring every entretenimiento and atraccion has at least one price
+    lista_precio_data = generate_lista_precio(entretenimiento_data, atraccion_data)
+
+    linea_factura_data, tarjeta_totals = generate_linea_factura_table(
+        factura_data, tarjeta_data,
+        entretenimiento_data, atraccion_data,
+        promo_entret_data, promocion_data,
+        lista_precio_data,
+        num_rows=100
+    )
+    
+    historial_categoria_data = generate_historial_categoria_table(tarjeta_data, categoria_data, num_rows=40)
+    cat_promo_data = generate_cat_promo_table(categoria_data, promocion_data, num_rows=20)
 
     # Step 2: Modify Tables that Need Updates or Dependencies
-    # - Update factura totals
-    # factura_data = update_factura_totals(factura_data, linea_factura_data)
-
-    # - Calculate tarjeta totals
-    tarjeta_totals = calculate_tarjeta_totals(tarjeta_data, linea_factura_data)
+    # - Calculate tarjeta totals (already returned from linea_factura generation)
+    tarjeta_totals = calculate_tarjeta_totals(tarjeta_data, linea_factura_data)  # Optional if recalculation needed
 
     # Step 3: Write SQL Statements
-    open("generated_data.sql", "w").close()
+    open("generated_data.sql", "w")
 
-    # Write the inserts for all tables
+    # Write inserts for all tables in proper order
     write_insert_to_file("Pais", pais_data, "generated_data.sql")
     write_insert_to_file("Provincia", provincia_data, "generated_data.sql")
     write_insert_to_file("Localidad", localidad_data, "generated_data.sql")
@@ -627,11 +712,13 @@ def generate_sql_for_tables():
     write_insert_to_file("Parque_de_Diversiones", parque_data, "generated_data.sql")
     write_insert_to_file("Evento", evento_data, "generated_data.sql")
     write_insert_to_file("Atraccion", atraccion_data, "generated_data.sql")
+    write_insert_to_file("Lista_Precio", lista_precio_data, "generated_data.sql")  # Insert prices before Linea_Factura
     write_insert_to_file("Promo_Entret", promo_entret_data, "generated_data.sql")
     write_insert_to_file("Promocion_Atraccion", promocion_atraccion_data, "generated_data.sql")
     write_insert_to_file("Linea_Factura", linea_factura_data, "generated_data.sql")
     write_insert_to_file("HistorialCategoria", historial_categoria_data, "generated_data.sql")
     write_insert_to_file("cat_promo", cat_promo_data, "generated_data.sql")
+
 
 
 generate_sql_for_tables()

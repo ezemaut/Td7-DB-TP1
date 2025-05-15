@@ -4,17 +4,18 @@
 DROP TABLE IF EXISTS cat_promo CASCADE;
 DROP TABLE IF EXISTS Promo_Entret CASCADE;
 DROP TABLE IF EXISTS Promocion_Atraccion CASCADE;
+DROP TABLE IF EXISTS HistorialCategoria CASCADE;
+DROP TABLE IF EXISTS Linea_Factura CASCADE;
+DROP TABLE IF EXISTS Lista_Precio CASCADE;
+DROP TABLE IF EXISTS Atraccion CASCADE;
 DROP TABLE IF EXISTS Evento CASCADE;
 DROP TABLE IF EXISTS Parque_de_Diversiones CASCADE;
-DROP TABLE IF EXISTS Linea_Factura CASCADE;
-DROP TABLE IF EXISTS Medio_de_Pago CASCADE;
-DROP TABLE IF EXISTS HistorialCategoria CASCADE;
-DROP TABLE IF EXISTS Tarjeta CASCADE;
-DROP TABLE IF EXISTS Factura CASCADE;
-DROP TABLE IF EXISTS Atraccion CASCADE;
-DROP TABLE IF EXISTS Caracteristica CASCADE;
 DROP TABLE IF EXISTS Entretenimiento CASCADE;
 DROP TABLE IF EXISTS Promocion CASCADE;
+DROP TABLE IF EXISTS Factura CASCADE;
+DROP TABLE IF EXISTS Tarjeta CASCADE;
+DROP TABLE IF EXISTS Medio_de_Pago CASCADE;
+DROP TABLE IF EXISTS Caracteristica CASCADE;
 DROP TABLE IF EXISTS Categoria CASCADE;
 DROP TABLE IF EXISTS Ranking CASCADE;
 DROP TABLE IF EXISTS Empresa CASCADE;
@@ -24,6 +25,7 @@ DROP TABLE IF EXISTS Calle CASCADE;
 DROP TABLE IF EXISTS Localidad CASCADE;
 DROP TABLE IF EXISTS Provincia CASCADE;
 DROP TABLE IF EXISTS Pais CASCADE;
+
 
 -- ==============================================
 -- CREATE BASE LOCATION TABLES FIRST
@@ -95,10 +97,10 @@ CREATE TABLE Promocion (
 
 CREATE TABLE Caracteristica (
     id_caracteristica INT PRIMARY KEY,
-    nombre_atraccion VARCHAR(100),
-    altura_min INT,
+    altura_min DECIMAL(5,2),
     edad_min INT
 );
+
 
 CREATE TABLE Titular (
     DNI INT PRIMARY KEY,
@@ -140,46 +142,54 @@ CREATE TABLE Factura (
 -- CREATE ENTRETAINMENT STRUCTURE
 -- ==============================================
 CREATE TABLE Entretenimiento (
-    id_entretenimiento INT,
-    fecha DATE,
+    id_entretenimiento INT PRIMARY KEY,
     nombre VARCHAR(50),
-    precio DECIMAL(10,2),
     tipo VARCHAR(50),
     min_categoria VARCHAR(100),
-    id_domicilio INT,  -- Foreign key to Domicilio
-    PRIMARY KEY (id_entretenimiento, fecha),
+    id_domicilio INT,
     FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat),
-    FOREIGN KEY (id_domicilio) REFERENCES Domicilio(id_dom)  -- Adding the foreign key reference to Domicilio
+    FOREIGN KEY (id_domicilio) REFERENCES Domicilio(id_dom)
 );
-
 
 CREATE TABLE Parque_de_Diversiones (
     id_entretenimiento INT,
-    fecha DATE,
-    PRIMARY KEY (id_entretenimiento, fecha),
-    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha)
+    PRIMARY KEY (id_entretenimiento),
+    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento)
 );
 
 CREATE TABLE Evento (
     id_entretenimiento INT PRIMARY KEY,
-    fecha DATE,
     fecha_inicio DATE,
     fecha_fin DATE,
     cuit VARCHAR(50),
-    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha),
+    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento),
     FOREIGN KEY (cuit) REFERENCES Empresa(cuit)
 );
 
 CREATE TABLE Atraccion (
-    id_atraccion INT,
-    fecha DATE,
-    precio DECIMAL(10,2),
+    id_atraccion INT PRIMARY KEY,
+    nombre_atraccion VARCHAR(100),
     id_caracteristica INT,
     id_parque INT,
-    fecha_parque DATE,
-    PRIMARY KEY (id_atraccion, fecha),
+    min_categoria VARCHAR(100),
     FOREIGN KEY (id_caracteristica) REFERENCES Caracteristica(id_caracteristica),
-    FOREIGN KEY (id_parque, fecha_parque) REFERENCES Parque_de_Diversiones(id_entretenimiento, fecha)
+    FOREIGN KEY (id_parque) REFERENCES Parque_de_Diversiones(id_entretenimiento),
+    FOREIGN KEY (min_categoria) REFERENCES Categoria(nombre_cat)
+);
+
+-- ==============================================
+-- CREATE LISTA_PRECIO TABLE
+-- ==============================================
+CREATE TABLE Lista_Precio (
+    id_precio INT PRIMARY KEY,
+    precio DECIMAL(10,2),
+    fecha DATE,
+    id_entretenimiento INT,
+    fecha_entret DATE,
+    id_atraccion INT,
+    fecha_atraccion DATE,
+    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento),
+    FOREIGN KEY (id_atraccion) REFERENCES Atraccion(id_atraccion)
 );
 
 -- ==============================================
@@ -192,14 +202,16 @@ CREATE TABLE Linea_Factura (
     nro_factura INT,
     id_tarjeta INT,
     id_entretenimiento INT,
-    fecha_entret DATE,
     id_atraccion INT,
-    fecha_atraccion DATE,
+    id_precio INT,
     FOREIGN KEY (nro_factura) REFERENCES Factura(Nro_factura),
     FOREIGN KEY (id_tarjeta) REFERENCES Tarjeta(ID_tarjeta),
-    FOREIGN KEY (id_entretenimiento, fecha_entret) REFERENCES Entretenimiento(id_entretenimiento, fecha),
-    FOREIGN KEY (id_atraccion, fecha_atraccion) REFERENCES Atraccion(id_atraccion, fecha)
+    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento),
+    FOREIGN KEY (id_atraccion) REFERENCES Atraccion(id_atraccion),
+    FOREIGN KEY (id_precio) REFERENCES Lista_Precio(id_precio)
 );
+
+
 
 CREATE TABLE HistorialCategoria (
     id_historial INT PRIMARY KEY,
@@ -216,19 +228,17 @@ CREATE TABLE HistorialCategoria (
 CREATE TABLE Promocion_Atraccion (
     ID_promocion INT,
     id_atraccion INT,
-    fecha DATE,
-    PRIMARY KEY (ID_promocion, id_atraccion, fecha),
+    PRIMARY KEY (ID_promocion, id_atraccion),
     FOREIGN KEY (ID_promocion) REFERENCES Promocion(ID_promocion),
-    FOREIGN KEY (id_atraccion, fecha) REFERENCES Atraccion(id_atraccion, fecha)
+    FOREIGN KEY (id_atraccion) REFERENCES Atraccion(id_atraccion)
 );
 
 CREATE TABLE Promo_Entret (
     ID_promocion INT,
     id_entretenimiento INT,
-    fecha DATE,
-    PRIMARY KEY (ID_promocion, id_entretenimiento, fecha),
+    PRIMARY KEY (ID_promocion, id_entretenimiento),
     FOREIGN KEY (ID_promocion) REFERENCES Promocion(ID_promocion),
-    FOREIGN KEY (id_entretenimiento, fecha) REFERENCES Entretenimiento(id_entretenimiento, fecha)
+    FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento)
 );
 
 CREATE TABLE cat_promo (
