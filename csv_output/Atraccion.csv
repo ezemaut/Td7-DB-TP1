@@ -1,0 +1,26 @@
+id_atraccion,nombre_atraccion,id_caracteristica,id_entretenimiento,nombre_categoria
+1,Explosivo Viaje,5,27,Platinum
+2,Misterioso Templo,6,21,Gold
+3,Encantado Caída,13,47,Platinum
+4,Vertiginoso Templo,1,18,Diamond
+5,Intergaláctico Tren,11,3,Bronze
+6,Mágico Viaje,4,47,Silver
+7,Fantástico Dragón,4,1,Silver
+8,Vertiginoso Laberinto,4,28,Platinum
+9,Salvaje Aventura,3,44,Diamond
+10,Vertiginoso Dragón,5,40,Bronze
+11,Mágico Caída,10,37,Platinum
+12,Misterioso Tornado,10,25,Silver
+13,Salvaje Laberinto,13,9,Bronze
+14,Fantástico Viaje,6,49,Diamond
+15,Intergaláctico Tornado,9,26,Gold
+16,Encantado Templo,2,1,Platinum
+17,Peligroso Dragón,7,24,Silver
+18,Legendario Caída,10,45,Diamond
+19,Peligroso Templo,7,47,Diamond
+20,Intergaláctico Tren,14,18,Bronze
+21,Peligroso Tren,13,18,Platinum
+22,Fantástico Remolino,6,37,Bronze
+23,Intergaláctico Dragón,8,28,Silver
+24,Salvaje Aventura,5,24,Diamond
+25,Salvaje Desafío,1,44,Diamond

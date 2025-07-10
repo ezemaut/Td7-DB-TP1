@@ -1,0 +1,51 @@
+id_entretenimiento,nombre,tipo,nombre_categoria,id_domicilio
+1,Parque Lauren,Parque,Silver,20
+2,West Andrea Fest,Evento,Silver,2
+3,Parque Andrea,Parque,Gold,22
+4,East Victoriaville Fest,Evento,Gold,18
+5,Parque Steven,Parque,Gold,35
+6,Lake Marilynfort Fest,Evento,Gold,8
+7,Williamview Fest,Evento,Gold,38
+8,Davenportfort Fest,Evento,Diamond,7
+9,Parque John,Parque,Gold,23
+10,Parque Andrea,Parque,Diamond,39
+11,Leehaven Fest,Evento,Diamond,25
+12,Port Chad Fest,Evento,Bronze,17
+13,Parque Kendra,Parque,Diamond,1
+14,Morganhaven Fest,Evento,Platinum,24
+15,Loriport Fest,Evento,Diamond,22
+16,Parque Jessica,Parque,Gold,8
+17,Parque Mary,Parque,Gold,27
+18,Parque Bethany,Parque,Diamond,19
+19,Grimesmouth Fest,Evento,Platinum,13
+20,Parque Amanda,Parque,Diamond,12
+21,Parque Michael,Parque,Diamond,26
+22,Gibsonmouth Fest,Evento,Gold,20
+23,Lake John Fest,Evento,Diamond,28
+24,Parque Patrick,Parque,Platinum,30
+25,Parque Melissa,Parque,Diamond,14
+26,Parque Robert,Parque,Bronze,11
+27,Parque Louis,Parque,Diamond,33
+28,Parque Thomas,Parque,Silver,6
+29,Parque Robin,Parque,Silver,15
+30,Hughesberg Fest,Evento,Bronze,2
+31,Hannaberg Fest,Evento,Diamond,31
+32,Mollymouth Fest,Evento,Platinum,30
+33,New Reneetown Fest,Evento,Platinum,25
+34,Parque Jennifer,Parque,Silver,16
+35,Pittsberg Fest,Evento,Platinum,7
+36,South Kimberlyview Fest,Evento,Diamond,12
+37,Parque Matthew,Parque,Diamond,4
+38,Santosmouth Fest,Evento,Platinum,8
+39,Finleyfort Fest,Evento,Diamond,30
+40,Parque Monique,Parque,Diamond,29
+41,Parque Barry,Parque,Platinum,36
+42,East Crystalport Fest,Evento,Platinum,31
+43,Parque Wendy,Parque,Gold,16
+44,Parque Julie,Parque,Gold,16
+45,Parque Ryan,Parque,Gold,5
+46,Port Cynthiaville Fest,Evento,Gold,18
+47,Parque Scott,Parque,Bronze,35
+48,Rebeccaton Fest,Evento,Silver,10
+49,Parque Mark,Parque,Silver,10
+50,West Michaelchester Fest,Evento,Platinum,27
