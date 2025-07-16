@@ -186,9 +186,7 @@ CREATE TABLE Lista_Precio (
     precio DECIMAL(10,2),
     fecha DATE,
     id_entretenimiento INT,
-    fecha_entret DATE,
     id_atraccion INT,
-    fecha_atraccion DATE,
     FOREIGN KEY (id_entretenimiento) REFERENCES Entretenimiento(id_entretenimiento),
     FOREIGN KEY (id_atraccion) REFERENCES Atraccion(id_atraccion)
 );
@@ -203,9 +201,7 @@ CREATE TABLE Linea_Factura (
     monto DECIMAL(10,2),
     id_tarjeta INT,
     id_entretenimiento INT,
-    fecha_entret DATE,
     id_atraccion INT,
-    fecha_atraccion DATE,
     id_precio INT,
     PRIMARY KEY (id_linea, nro_factura),
     FOREIGN KEY (nro_factura) REFERENCES Factura(Nro_factura),
